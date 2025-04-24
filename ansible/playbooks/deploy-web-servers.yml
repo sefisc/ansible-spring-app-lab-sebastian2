@@ -1,0 +1,52 @@
+---
+- name: Deploy Spring app to web-servers
+  hosts: web_servers
+  become: yes
+
+  tasks:
+    - name: Install Java runtime
+      apt:
+        name: openjdk-11-jre
+        state: present
+        update_cache: yes
+
+    - name: Build the app locally
+      local_action:
+        module: shell
+        cmd: mvn -q clean package -DskipTests
+      args:
+        chdir: "{{ playbook_dir }}/../../"
+
+    - name: Copy JAR to remote
+      copy:
+        src: "{{ playbook_dir }}/../../target/hello-app-1.0.0.jar"
+        dest: /home/ubuntu/app.jar
+        mode: '0755'
+
+    - name: Install systemd unit
+    copy:
+        dest: /etc/systemd/system/hello-app.service
+        owner: root
+        mode: '0644'
+        content: |
+        [Unit]
+        Description=Spring Boot Hello-App
+        After=network.target
+
+        [Service]
+        User=ubuntu
+        WorkingDirectory=/home/ubuntu
+        ExecStart=/usr/bin/java -jar /home/ubuntu/app.jar
+        SuccessExitStatus=143
+        Restart=always
+        RestartSec=5
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: (Re)load and run the service
+    systemd:
+        name: hello-app
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
