@@ -24,28 +24,28 @@
         mode: '0755'
 
     - name: Install systemd unit
-    copy:
+      copy:
         dest: /etc/systemd/system/hello-app.service
         owner: root
         mode: '0644'
         content: |
-        [Unit]
-        Description=Spring Boot Hello-App
-        After=network.target
+          [Unit]
+          Description=Spring Boot Hello-App
+          After=network.target
 
-        [Service]
-        User=ubuntu
-        WorkingDirectory=/home/ubuntu
-        ExecStart=/usr/bin/java -jar /home/ubuntu/app.jar
-        SuccessExitStatus=143
-        Restart=always
-        RestartSec=5
+          [Service]
+          User=ubuntu
+          WorkingDirectory=/home/ubuntu
+          ExecStart=/usr/bin/java -jar /home/ubuntu/app.jar
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=5
 
-        [Install]
-        WantedBy=multi-user.target
+          [Install]
+          WantedBy=multi-user.target
 
     - name: (Re)load and run the service
-    systemd:
+      systemd:
         name: hello-app
         daemon_reload: yes
         enabled: yes
